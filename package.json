@@ -1,0 +1,14 @@
+{
+  "name": "scrape-website",
+  "version": "1.0.0",
+  "description": "Web scraping tools website with 404 support",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  },
+  "author": "lifxXd",
+  "license": "MIT"
+}
