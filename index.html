@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Scrape Website</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-deep: #06080f;
+            --bg-card: rgba(18, 22, 36, 0.75);
+            --border-light: rgba(255, 255, 255, 0.05);
+            --border-hover: rgba(139, 92, 246, 0.15);
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --secondary: #06b6d4;
+            --accent: #f472b6;
+            --text-main: #f1f3f5;
+            --text-muted: #8892a0;
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --glass-blur: blur(16px);
+            --success: #4ade80;
+            --danger: #ef4444;
+            --star: #fbbf24;
+            --review-bg: #0d0f1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            outline: none !important;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-weight: 500;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-top: 80px;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(6, 182, 212, 0.03) 0%, transparent 60%),
+                linear-gradient(180deg, #06080f 0%, #0c0e1a 50%, #06080f 100%);
+            background-attachment: fixed;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        input,
+        textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.06); border-radius: 10px; }
+        * { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.06) transparent; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: #06080f;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(6, 182, 212, 0.04) 0%, transparent 60%),
+                linear-gradient(180deg, #06080f 0%, #0c0e1a 50%, #06080f 100%);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 6em;
+            height: 6em;
+        }
+
+        .loader-ring {
+            animation: ringA 2s linear infinite;
+        }
+
+        .loader-ring-a {
+            stroke: #9708F4;
+        }
+
+        .loader-ring-b {
+            animation-name: ringB;
+            stroke: #5E14E4;
+        }
+
+        .loader-ring-c {
+            animation-name: ringC;
+            stroke: #9708F4;
+        }
+
+        .loader-ring-d {
+            animation-name: ringD;
+            stroke: #5E14E4;
+        }
+
+        .loading-text {
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+
+        .loading-text .highlight {
+            color: var(--primary);
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .loading-progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .loading-percent {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            opacity: 0.3;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes ringA {
+            from, 4% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -330; }
+            12% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -335; }
+            32% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -595; }
+            40%, 54% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -660; }
+            62% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -665; }
+            82% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -925; }
+            90%, to { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -990; }
+        }
+
+        @keyframes ringB {
+            from, 12% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -110; }
+            20% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -115; }
+            40% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -195; }
+            48%, 62% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -220; }
+            70% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -225; }
+            90% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -305; }
+            98%, to { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -330; }
+        }
+
+        @keyframes ringC {
+            from { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+            8% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+            28% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+            36%, 58% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+            66% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+            86% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+            94%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+        }
+
+        @keyframes ringD {
+            from, 8% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+            16% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+            36% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+            44%, 50% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+            58% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+            78% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+            86%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+        }
+
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+                        transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .reveal-hidden.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== NAVBAR ===== */
+        nav {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 1000px;
+            padding: 10px 20px;
+            background: rgba(10, 12, 20, 0.6);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            border-radius: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand {
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .brand span { color: var(--primary); }
+        .brand i { color: var(--primary); }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 100px;
+            background: rgba(139, 92, 246, 0.06);
+            border: 1px solid rgba(139, 92, 246, 0.08);
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .hero-badge .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        .hero-title {
+            font-family: var(--font-head);
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1.08;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 560px;
+            margin: 0 auto 24px;
+            font-weight: 400;
+            opacity: 0.6;
+        }
+
+        /* ===== BUTTONS ROW - UIVERSE SKEW ===== */
+        .buttons-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            padding: 10px 0 20px;
+        }
+
+        .btn-skew {
+            outline: none;
+            cursor: pointer;
+            border: none;
+            padding: 0.9rem 2rem;
+            margin: 0;
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.05rem;
+            font-weight: 700;
+            border-radius: 500px;
+            overflow: hidden;
+            color: ghostwhite;
+            text-decoration: none;
+            flex: 1;
+            min-width: 200px;
+            max-width: 280px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-skew .btn-icon {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-skew .btn-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1px;
+            line-height: 1.2;
+            position: relative;
+            z-index: 10;
+        }
+
+        .btn-skew .btn-text .main {
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            transition: color 0.4s;
+        }
+
+        .btn-skew .btn-text .sub {
+            font-size: 0.5rem;
+            font-weight: 400;
+            opacity: 0.6;
+            transition: color 0.4s;
+        }
+
+        .btn-skew span {
+            position: relative;
+            z-index: 10;
+            transition: color 0.4s;
+        }
+
+        .btn-skew:hover span {
+            color: black;
+        }
+
+        .btn-skew::before,
+        .btn-skew::after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .btn-skew::before {
+            content: "";
+            width: 120%;
+            left: -10%;
+            transform: skew(30deg);
+            transition: transform 0.5s cubic-bezier(0.3, 1, 0.8, 1);
+        }
+
+        .btn-skew:hover::before {
+            transform: translate3d(100%, 0, 0);
+        }
+
+        .btn-skew:hover .btn-icon {
+            transform: rotate(-10deg) scale(1.1);
+        }
+
+        .btn-skew-scraper {
+            background: #5b21b6;
+        }
+        .btn-skew-scraper::before {
+            background: #7c3aed;
+        }
+        .btn-skew-scraper::after {
+            background: #5b21b6;
+        }
+        .btn-skew-scraper:hover {
+            background: #6d28d9;
+        }
+
+        .btn-skew-iqc {
+            background: #0891b2;
+        }
+        .btn-skew-iqc::before {
+            background: #06b6d4;
+        }
+        .btn-skew-iqc::after {
+            background: #0891b2;
+        }
+        .btn-skew-iqc:hover {
+            background: #0e7490;
+        }
+
+        /* ===== STEPS ===== */
+        .steps-section {
+            padding: 4px 0;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 4px;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            padding: 20px 18px;
+            text-align: center;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .step-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            font-family: var(--font-head);
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--primary-light);
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.06);
+            padding: 2px 12px;
+            border-radius: 100px;
+            display: inline-block;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .step-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            color: var(--primary-light);
+        }
+
+        .step-icon svg {
+            width: 34px;
+            height: 34px;
+            stroke: var(--primary-light);
+            filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.08));
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover .step-icon svg {
+            stroke: var(--primary);
+            filter: drop-shadow(0 0 24px rgba(139, 92, 246, 0.15));
+            transform: scale(1.05);
+        }
+
+        .step-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .step-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            opacity: 0.5;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        /* ===== FEATURES ===== */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            padding: 22px 18px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+        .feature-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            color: var(--primary-light);
+        }
+
+        .feature-card .icon svg {
+            width: 34px;
+            height: 34px;
+            stroke: var(--primary-light);
+            filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.08));
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .icon svg {
+            stroke: var(--primary);
+            filter: drop-shadow(0 0 24px rgba(139, 92, 246, 0.15));
+            transform: scale(1.06);
+        }
+
+        .feature-card .label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .feature-card .desc {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            opacity: 0.4;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 14px;
+            border: 1px solid var(--border-light);
+            padding: 20px 22px;
+            transition: border-color 0.25s ease;
+        }
+        .panel:hover {
+            border-color: var(--border-hover);
+        }
+
+        .panel-title {
+            font-family: var(--font-head);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+            opacity: 0.3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== FOOTER GRID (UIVERSE STYLE - DARK THEME) ===== */
+        .footer-grid {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            margin-top: 20px;
+            background: linear-gradient(
+                to bottom,
+                rgba(18, 22, 36, 0.95) 0%,
+                rgba(18, 22, 36, 0.8) 40%,
+                rgba(6, 8, 15, 0.4) 100%
+            ),
+            linear-gradient(to right, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05));
+            border: 1px solid var(--border-light);
+            padding: 40px 30px 30px;
+        }
+
+        .footer-grid::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            mask-image: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(0, 0, 0, 0) 70%
+            );
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 1) 0%,
+                rgba(0, 0, 0, 0) 70%
+            );
+            z-index: 0;
+        }
+
+        .footer-grid .footer-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-grid .footer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-grid .footer-col .col-title {
+            font-family: var(--font-head);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            opacity: 0.4;
+            margin-bottom: 4px;
+        }
+
+        .footer-grid .footer-col .col-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.3;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-grid .footer-col .col-link:hover {
+            opacity: 0.8;
+            color: var(--text-main);
+            transform: translateX(4px);
+        }
+
+        .footer-grid .footer-col .col-link i {
+            font-size: 0.6rem;
+            opacity: 0.3;
+        }
+
+        .footer-grid .footer-bottom {
+            position: relative;
+            z-index: 1;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .footer-grid .footer-bottom .copyright {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            opacity: 0.15;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-grid .footer-bottom .social-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .footer-grid .footer-bottom .social-links a {
+            color: var(--text-muted);
+            opacity: 0.15;
+            transition: all 0.25s ease;
+            font-size: 0.9rem;
+        }
+
+        .footer-grid .footer-bottom .social-links a:hover {
+            opacity: 0.6;
+            color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 16px 0;
+            color: var(--text-muted);
+            font-size: 0.6rem;
+            opacity: 0.15;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 700px) {
+            body { padding-top: 70px; }
+            .main-content { padding: 0 14px 30px; gap: 24px; }
+            .hero-title { font-size: 2rem; }
+            .hero-desc { font-size: 0.9rem; }
+            . { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: 1fr 1fr; }
+            nav { width: 96%; padding: 8px 14px; top: 10px; }
+            .brand { font-size: 0.85rem; }
+            .loader { width: 4em; height: 4em; }
+            .loading-text { font-size: 0.7rem; }
+            .loading-progress { width: 150px; }
+            
+            .buttons-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+            }
+            .btn-skew {
+                min-width: 100%;
+                max-width: 100%;
+                padding: 0.8rem 1.5rem;
+                font-size: 0.85rem;
+                border-radius: 500px;
+            }
+            .btn-skew .btn-text .main {
+                font-size: 0.85rem;
+            }
+            .btn-skew .btn-text .sub {
+                font-size: 0.45rem;
+            }
+            .btn-skew .btn-icon {
+                font-size: 0.9rem;
+            }
+
+            .footer-grid {
+                padding: 24px 16px 20px;
+            }
+            .footer-grid .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            .footer-grid .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .hero-title { font-size: 1.6rem; }
+            .steps-grid { grid-template-columns: 1fr; }
+            .feature-card { padding: 16px 14px; }
+            .feature-card .icon svg,
+            .step-icon svg { width: 24px; height: 24px; }
+            
+            .btn-skew {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.75rem;
+                border-radius: 500px;
+            }
+            .btn-skew .btn-text .main {
+                font-size: 0.75rem;
+            }
+            .btn-skew .btn-text .sub {
+                font-size: 0.4rem;
+            }
+            .btn-skew .btn-icon {
+                font-size: 0.8rem;
+            }
+
+            .footer-grid .footer-content {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING SCREEN ===== -->
+    <div id="loadingScreen">
+        <svg viewBox="0 0 240 240" height="120" width="120" class="loader">
+            <circle stroke-linecap="round" stroke-dashoffset="-330" stroke-dasharray="0 660" stroke-width="20" stroke="#000" fill="none" r="105" cy="120" cx="120" class="loader-ring loader-ring-a"></circle>
+            <circle stroke-linecap="round" stroke-dashoffset="-110" stroke-dasharray="0 220" stroke-width="20" stroke="#000" fill="none" r="35" cy="120" cx="120" class="loader-ring loader-ring-b"></circle>
+            <circle stroke-linecap="round" stroke-dasharray="0 440" stroke-width="20" stroke="#000" fill="none" r="70" cy="120" cx="85" class="loader-ring loader-ring-c"></circle>
+            <circle stroke-linecap="round" stroke-dasharray="0 440" stroke-width="20" stroke="#000" fill="none" r="70" cy="120" cx="155" class="loader-ring loader-ring-d"></circle>
+        </svg>
+        <div class="loading-text">Memuat <span class="highlight">Scrape Website</span></div>
+        <div class="loading-progress">
+            <div class="loading-progress-fill" id="loadingProgressFill"></div>
+        </div>
+        <div class="loading-percent" id="loadingPercent">0%</div>
+    </div>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav>
+        <a href="index.html" class="brand">
+            <i class="fas fa-code"></i> Scrape<span>Website</span>
+        </a>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- ===== HERO ===== -->
+        <section class="hero reveal-hidden">
+            <div class="hero-badge">
+                <span class="dot"></span>
+                <span>v2.0 · Stable</span>
+            </div>
+            <h1 class="hero-title">
+                Scrape <span class="highlight">Website</span>
+            </h1>
+            <p class="hero-desc">
+                Download seluruh konten website — HTML, CSS, JS, gambar, video — dalam satu file ZIP.
+                Cepat, gratis, dan tanpa batasan.
+            </p>
+        </section>
+
+        <!-- ===== BUTTONS ROW ===== -->
+        <div class="buttons-row reveal-hidden">
+            <a href="scraper.html" class="btn-skew btn-skew-scraper">
+                <span class="btn-icon"><i class="fas fa-scroll"></i></span>
+                <span class="btn-text">
+                    <span class="main">Scrape Website</span>
+                    <span class="sub">Download semua konten</span>
+                </span>
+            </a>
+
+            <a href="iqc.html" class="btn-skew btn-skew-iqc">
+                <span class="btn-icon"><i class="fas fa-pen-fancy"></i></span>
+                <span class="btn-text">
+                    <span class="main">IQC Studio</span>
+                    <span class="sub">Generate gambar teks</span>
+                </span>
+            </a>
+        </div>
+
+        <!-- ===== LANGKAH-LANGKAH ===== -->
+        <div class="steps-section reveal-hidden">
+            <div class="panel">
+                <div class="panel-title"><i class="fas fa-list-check"></i> Cara Menggunakan</div>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <span class="step-number">Langkah 1</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </span>
+                        <div class="step-title">Masukkan URL</div>
+                        <div class="step-desc">Tempel link website yang ingin kamu scrape di kolom URL.</div>
+                    </div>
+
+                    <div class="step-card">
+                        <span class="step-number">Langkah 2</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                                <polyline points="17 6 23 6 23 12"/>
+                            </svg>
+                        </span>
+                        <div class="step-title">Klik Scrape</div>
+                        <div class="step-desc">Tekan tombol Scrape dan tunggu proses pengambilan data selesai.</div>
+                    </div>
+
+                    <div class="step-card">
+                        <span class="step-number">Langkah 3</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                        </span>
+                        <div class="step-title">Download ZIP</div>
+                        <div class="step-desc">File ZIP siap diunduh — semua konten website tersimpan rapi.</div>
+                    </div>
+
+                    <div class="step-card">
+                        <span class="step-number">Langkah 4</span>
+                        <span class="step-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                                <line x1="12" y1="11" x2="12" y2="17"/>
+                                <polyline points="9 14 12 17 15 14"/>
+                            </svg>
+                        </span>
+                        <div class="step-title">Ekstrak &amp; Gunakan</div>
+                        <div class="step-desc">Buka file ZIP, semua aset website siap kamu gunakan.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FEATURES ===== -->
+        <div class="features reveal-hidden">
+            <div class="feature-card">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/>
+                        <path d="M3 12a9 9 0 019-9"/>
+                    </svg>
+                </span>
+                <div class="label">Selalu Update</div>
+                <div class="desc">Scraper diperbarui mengikuti perkembangan website target.</div>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                </span>
+                <div class="label">Dikurasi Ahli</div>
+                <div class="desc">Setiap fitur telah diuji dan diverifikasi oleh tim kurator.</div>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                        <circle cx="12" cy="12" r="3"/>
+                        <circle cx="12" cy="12" r="7"/>
+                    </svg>
+                </span>
+                <div class="label">100% Gratis</div>
+                <div class="desc">Semua tools gratis digunakan. Bebas dipakai untuk semua.</div>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER GRID (UIVERSE STYLE) ===== -->
+        <div class="footer-grid reveal-hidden">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <span class="col-title"><i class="fas fa-code"></i> ScrapeWebsite</span>
+                    <a href="about.html" class="col-link"><i class="fas fa-chevron-right"></i> Tentang Kami</a>
+                    <a href="fitur.html" class="col-link"><i class="fas fa-chevron-right"></i> Fitur</a>
+                    <a href="docs.html" class="col-link"><i class="fas fa-chevron-right"></i> Dokumentasi</a>
+                    <a href="log.html" class="col-link"><i class="fas fa-chevron-right"></i> Changelog</a>
+                </div>
+                <div class="footer-col">
+                    <span class="col-title"><i class="fas fa-tools"></i> Tools</span>
+                    <a href="scraper.html" class="col-link"><i class="fas fa-chevron-right"></i> Website Scraper</a>
+                    <a href="iqc.html" class="col-link"><i class="fas fa-chevron-right"></i> IQC Studio</a>
+                    <a href="dashboard.html" class="col-link"><i class="fas fa-chevron-right"></i> Dashboard</a>
+                </div>
+                <div class="footer-col">
+                    <span class="col-title"><i class="fas fa-support"></i> Support</span>
+                    <a href="faq.html" class="col-link"><i class="fas fa-chevron-right"></i> FAQ</a>
+                    <a href="kontak.html" class="col-link"><i class="fas fa-chevron-right"></i> Kontak</a>
+                    <a href="#" class="col-link"><i class="fas fa-chevron-right"></i> Laporan Bug</a>
+                    <a href="#" class="col-link"><i class="fas fa-chevron-right"></i> Saran Fitur</a>
+                </div>
+                <div class="footer-col">
+                    <span class="col-title"><i class="fas fa-legal"></i> Legal</span>
+                    <a href="privat.html" class="col-link"><i class="fas fa-chevron-right"></i> Kebijakan Privasi</a>
+                    <a href="terms.html" class="col-link"><i class="fas fa-chevron-right"></i> Syarat &amp; Ketentuan</a>
+                    <a href="license.html" class="col-link"><i class="fas fa-chevron-right"></i> Lisensi</a>
+                    <a href="cookie.html" class="col-link"><i class="fas fa-chevron-right"></i> Cookie</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span class="copyright">
+                    <i class="fas fa-copyright"></i> 2026 Scrape Website · Made with <i class="fas fa-heart" style="color:var(--primary);"></i>
+                </span>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="footer">
+            Edit with <i class="fas fa-heart" style="color: var(--primary);"></i> · &copy; 2026 Scrape Website
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // LOADING SCREEN
+            // ============================================================
+
+            const loadingScreen = document.getElementById('loadingScreen');
+            const progressFill = document.getElementById('loadingProgressFill');
+            const percentText = document.getElementById('loadingPercent');
+
+            let loadProgress = 0;
+
+            function updateLoading() {
+                loadProgress += Math.random() * 12 + 4;
+                if (loadProgress > 100) loadProgress = 100;
+                progressFill.style.width = loadProgress + '%';
+                percentText.textContent = Math.floor(loadProgress) + '%';
+
+                if (loadProgress < 100) {
+                    setTimeout(updateLoading, 200 + Math.random() * 250);
+                } else {
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }, 600);
+                }
+            }
+
+            setTimeout(updateLoading, 400);
+
+            // ============================================================
+            // SCROLL REVEAL
+            // ============================================================
+
+            function initScrollReveal() {
+                const els = document.querySelectorAll('.reveal-hidden');
+                els.forEach(el => el.classList.remove('revealed'));
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('revealed');
+                        } else {
+                            entry.target.classList.remove('revealed');
+                            void entry.target.offsetWidth;
+                        }
+                    });
+                }, {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -30px 0px'
+                });
+
+                els.forEach(el => observer.observe(el));
+                window._scrollObserver = observer;
+            }
+
+            setTimeout(() => {
+                initScrollReveal();
+            }, 1500);
+
+            
+        })();
+    </script>
+
+</body>
+</html>
