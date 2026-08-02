@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IQC STUDIO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #08080f;
+            color: #e8e8e8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           BLOB ANIMATION — BACKGROUND
+           ============================================================ */
+        .blob-container {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .blob-item {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: blobBounce 8s ease-in-out infinite alternate;
+        }
+
+        .blob-item:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -80px;
+            right: -80px;
+            background: #7c3aed;
+            animation-duration: 10s;
+            animation-delay: 0s;
+        }
+
+        .blob-item:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            bottom: -60px;
+            left: -60px;
+            background: #06b6d4;
+            animation-duration: 12s;
+            animation-delay: -3s;
+        }
+
+        .blob-item:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #8b5cf6;
+            animation-duration: 14s;
+            animation-delay: -6s;
+            opacity: 0.15;
+        }
+
+        @keyframes blobBounce {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(60px, -40px) scale(1.1); }
+            50% { transform: translate(-30px, 60px) scale(0.9); }
+            75% { transform: translate(40px, 30px) scale(1.05); }
+            100% { transform: translate(-20px, -20px) scale(1); }
+        }
+
+        /* ============================================================
+           CONTAINER WRAPPER — DENGAN BLOB BORDER
+           ============================================================ */
+        .container-wrapper {
+            position: relative;
+            z-index: 1;
+            border-radius: 32px;
+            padding: 4px;
+            background: transparent;
+            overflow: visible;
+        }
+
+        /* ===== BLOB BORDER ===== */
+        .blob-border {
+            position: absolute;
+            inset: -8px;
+            border-radius: 36px;
+            z-index: -1;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .blob-border .blob-bg {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            z-index: 2;
+            background: rgba(14, 14, 22, 0.95);
+            border-radius: 28px;
+            backdrop-filter: blur(24px);
+            overflow: hidden;
+        }
+
+        .blob-border .blob {
+            position: absolute;
+            z-index: 1;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.7;
+            animation: blobBorderBounce 6s ease-in-out infinite;
+        }
+
+        .blob-border .blob:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            left: 50%;
+            background: #7c3aed;
+            animation-delay: 0s;
+            animation-duration: 6s;
+        }
+
+        .blob-border .blob:nth-child(3) {
+            width: 180px;
+            height: 180px;
+            top: 30%;
+            left: 20%;
+            background: #06b6d4;
+            animation-delay: -2s;
+            animation-duration: 7s;
+            opacity: 0.5;
+        }
+
+        .blob-border .blob:nth-child(4) {
+            width: 160px;
+            height: 160px;
+            top: 60%;
+            left: 70%;
+            background: #f472b6;
+            animation-delay: -4s;
+            animation-duration: 8s;
+            opacity: 0.5;
+        }
+
+        @keyframes blobBorderBounce {
+            0% {
+                transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1);
+            }
+            25% {
+                transform: translate(-50%, -50%) translate3d(60px, -40px, 0) scale(1.1);
+            }
+            50% {
+                transform: translate(-50%, -50%) translate3d(-40px, 60px, 0) scale(0.9);
+            }
+            75% {
+                transform: translate(-50%, -50%) translate3d(50px, 40px, 0) scale(1.05);
+            }
+            100% {
+                transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1);
+            }
+        }
+
+        /* ============================================================
+           CONTAINER
+           ============================================================ */
+        .container {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(14, 14, 22, 0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 28px;
+            padding: 28px 24px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            position: relative;
+            z-index: 3;
+            animation: containerIn 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+        }
+
+        @keyframes containerIn {
+            0% { opacity: 0; transform: translateY(40px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            animation: fadeSlide 0.6s ease 0.15s forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeSlide {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-left .title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #fff;
+            background: linear-gradient(135deg, #fff 60%, rgba(255,255,255,0.5));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .header-left .title span {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header-left .version {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 2px;
+            font-weight: 400;
+            margin-top: 1px;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .badge-ready {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 14px;
+            border-radius: 100px;
+            background: rgba(74, 222, 128, 0.06);
+            border: 1px solid rgba(74, 222, 128, 0.1);
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #4ade80;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            animation: pulseBadge 2s ease-in-out infinite;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .badge-ready .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: dotPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.7); }
+        }
+        @keyframes pulseBadge {
+            0%, 100% { border-color: rgba(74, 222, 128, 0.1); }
+            50% { border-color: rgba(74, 222, 128, 0.25); }
+        }
+
+        /* ============================================================
+           FORM
+           ============================================================ */
+        .form-group {
+            margin-bottom: 16px;
+            animation: fadeSlide 0.6s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .form-group:nth-child(1) { animation-delay: 0.2s; }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 6px;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .form-label i {
+            font-size: 0.6rem;
+            opacity: 0.3;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            transition: all 0.3s ease;
+            outline: none;
+            font-weight: 500;
+        }
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.08);
+            font-weight: 400;
+        }
+        .form-input:focus {
+            border-color: rgba(139, 92, 246, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.03);
+        }
+
+        /* ============================================================
+           CURRENT TIME DISPLAY
+           ============================================================ */
+        .time-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin-bottom: 16px;
+            animation: fadeSlide 0.6s ease 0.25s forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .time-display i {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.8rem;
+        }
+        .time-display .time-value {
+            color: #fff;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ============================================================
+           BUTTON GENERATE
+           ============================================================ */
+        .btn-generate {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeSlide 0.6s ease 0.35s forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .btn-generate::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255, 255, 255, 0.05) 60%, transparent 80%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .btn-generate:hover::before {
+            transform: translateX(100%);
+        }
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(124, 58, 237, 0.25);
+        }
+        .btn-generate:active {
+            transform: scale(0.97);
+        }
+        .btn-generate i {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================================
+           ERROR
+           ============================================================ */
+        .error-msg {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.04);
+            border: 1px solid rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            font-size: 0.8rem;
+            margin-bottom: 16px;
+            animation: shake 0.4s ease;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .error-msg.active {
+            display: flex;
+        }
+        .error-msg i {
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* ============================================================
+           RESULT
+           ============================================================ */
+        .result {
+            display: none;
+            margin-top: 4px;
+            animation: resultIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .result.active {
+            display: block;
+        }
+
+        @keyframes resultIn {
+            0% { opacity: 0; transform: translateY(20px) scale(0.97); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .result-image {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            margin-bottom: 16px;
+            transition: box-shadow 0.4s ease;
+        }
+        .result-image:hover {
+            box-shadow: 0 16px 56px rgba(0, 0, 0, 0.6);
+        }
+        .result-image img {
+            width: 100%;
+            display: block;
+            animation: imgReveal 0.8s ease forwards;
+        }
+
+        @keyframes imgReveal {
+            0% { opacity: 0; transform: scale(0.98); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .result-actions .btn-action {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.02);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 500;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .result-actions .btn-action:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        .result-actions .btn-action:active {
+            transform: scale(0.96);
+        }
+        .result-actions .btn-action i {
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+        .footer {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            justify-content: center;
+            animation: fadeSlide 0.6s ease 0.5s forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .footer .credit {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.08);
+            letter-spacing: 1.5px;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .footer .credit strong {
+            color: rgba(255, 255, 255, 0.15);
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           LOADING OVERLAY
+           ============================================================ */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-overlay .spinner-wrap {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            margin-bottom: 20px;
+        }
+        .loading-overlay .spinner-wrap .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            animation: spinRing 1s linear infinite;
+        }
+        .loading-overlay .spinner-wrap .ring:nth-child(1) {
+            border-top-color: #8b5cf6;
+            animation-duration: 1s;
+        }
+        .loading-overlay .spinner-wrap .ring:nth-child(2) {
+            border-right-color: #06b6d4;
+            animation-duration: 1.4s;
+            animation-direction: reverse;
+            inset: 8px;
+        }
+        .loading-overlay .spinner-wrap .ring:nth-child(3) {
+            border-bottom-color: #f472b6;
+            animation-duration: 1.8s;
+            inset: 16px;
+        }
+
+        @keyframes spinRing {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay .load-text {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            font-weight: 400;
+            text-transform: uppercase;
+            animation: loadPulse 1.6s ease-in-out infinite;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        @keyframes loadPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ============================================================
+           NOTIFICATION
+           ============================================================ */
+        .notif {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            max-width: 320px;
+            padding: 14px 20px;
+            background: rgba(14, 14, 22, 0.94);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .notif.show {
+            transform: translateX(0);
+        }
+        .notif .notif-icon {
+            color: #4ade80;
+            font-size: 1.2rem;
+            animation: notifPop 0.5s ease;
+        }
+        @keyframes notifPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .notif .notif-content h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .notif .notif-content p {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .container { padding: 20px 16px; border-radius: 20px; }
+            .container-wrapper { border-radius: 24px; }
+            .blob-border { border-radius: 28px; inset: -4px; }
+            .blob-border .blob-bg { border-radius: 22px; }
+            .blob-border .blob { filter: blur(30px); }
+            .blob-border .blob:nth-child(2) { width: 150px; height: 150px; }
+            .blob-border .blob:nth-child(3) { width: 130px; height: 130px; }
+            .blob-border .blob:nth-child(4) { width: 120px; height: 120px; }
+            .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .header-left .title { font-size: 1.4rem; }
+            .badge-ready { font-size: 0.55rem; padding: 4px 12px; }
+            .result-actions { grid-template-columns: 1fr; }
+            .notif { right: 12px; left: 12px; max-width: none; }
+            .form-input { font-size: 0.9rem; padding: 12px 14px; }
+            .btn-generate { padding: 13px; font-size: 0.9rem; }
+
+            .blob-item:nth-child(1) {
+                width: 200px;
+                height: 200px;
+                top: -60px;
+                right: -60px;
+            }
+            .blob-item:nth-child(2) {
+                width: 180px;
+                height: 180px;
+                bottom: -50px;
+                left: -50px;
+            }
+            .blob-item:nth-child(3) {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        /* ============================================================
+           SCROLLBAR
+           ============================================================ */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.3); }
+    </style>
+</head>
+<body>
+
+    <!-- ===== BLOB BACKGROUND ===== -->
+    <div class="blob-container">
+        <div class="blob-item"></div>
+        <div class="blob-item"></div>
+        <div class="blob-item"></div>
+    </div>
+
+    <!-- ===== LOADING ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-wrap">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+        </div>
+        <p class="load-text">Generating</p>
+    </div>
+
+    <!-- ===== NOTIFICATION ===== -->
+    <div class="notif" id="notification">
+        <div class="notif-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="notif-content">
+            <h4>Berhasil!</h4>
+            <p>Gambar siap diunduh</p>
+        </div>
+    </div>
+
+    <!-- ===== CONTAINER WRAPPER ===== -->
+    <div class="container-wrapper">
+
+        <!-- ===== BLOB BORDER ===== -->
+        <div class="blob-border">
+            <div class="blob"></div>
+            <div class="blob"></div>
+            <div class="blob"></div>
+            <div class="blob-bg"></div>
+        </div>
+
+        <!-- ===== CONTAINER ===== -->
+        <div class="container">
+
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-left">
+                    <div class="title">IQC<span>Studio</span></div>
+                    <div class="version">v3.0 · mobile</div>
+                </div>
+                <div class="badge-ready">
+                    <span class="dot"></span> Ready
+                </div>
+            </div>
+
+            <!-- FORM -->
+            <div class="form-group">
+                <label class="form-label"><i class="fas fa-comment"></i> Pesan</label>
+                <input type="text" id="textInput" class="form-input" placeholder="Ketik pesan..." autofocus>
+            </div>
+
+            <!-- CURRENT TIME -->
+            <div class="time-display">
+                <i class="fas fa-clock"></i>
+                <span>Waktu sekarang:</span>
+                <span class="time-value" id="currentTime">--:--</span>
+            </div>
+
+            <!-- ERROR -->
+            <div class="error-msg" id="errorMsg">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText">Terjadi kesalahan.</span>
+            </div>
+
+            <!-- GENERATE -->
+            <button class="btn-generate" id="generateBtn">
+                <i class="fas fa-bolt"></i> Generate
+            </button>
+
+            <!-- RESULT -->
+            <div class="result" id="resultSection">
+                <div class="result-image">
+                    <img id="resultImg" src="" alt="Generated">
+                </div>
+                <div class="result-actions">
+                    <button class="btn-action" id="downloadBtn"><i class="fas fa-download"></i> Download</button>
+                    <button class="btn-action" id="newBtn"><i class="fas fa-rotate-right"></i> Baru</button>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <div class="credit">DEV BY <strong>lifxXd</strong></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           IQC STUDIO — MAIN LOGIC
+           ============================================================ */
+
+        // DOM Elements
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const resultSection = document.getElementById('resultSection');
+        const resultImg = document.getElementById('resultImg');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const newBtn = document.getElementById('newBtn');
+        const textInput = document.getElementById('textInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const errorText = document.getElementById('errorText');
+        const notification = document.getElementById('notification');
+        const currentTimeEl = document.getElementById('currentTime');
+
+        let currentImageUrl = '';
+
+        // ===== UPDATE CURRENT TIME =====
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            currentTimeEl.textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 10000);
+
+        // ===== SHOW NOTIFICATION =====
+        function showNotif() {
+            notification.classList.add('show');
+            clearTimeout(window._notifTimer);
+            window._notifTimer = setTimeout(() => notification.classList.remove('show'), 4000);
+        }
+
+        // ===== SHOW ERROR =====
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorMsg.classList.add('active');
+            clearTimeout(window._errTimer);
+            window._errTimer = setTimeout(() => errorMsg.classList.remove('active'), 5000);
+        }
+
+        // ===== GENERATE =====
+        generateBtn.addEventListener('click', async function() {
+            const text = textInput.value.trim();
+
+            if (!text) {
+                showError('Isi pesan terlebih dahulu.');
+                return;
+            }
+
+            loadingOverlay.classList.add('active');
+            errorMsg.classList.remove('active');
+
+            try {
+                const url = `https://api.azbry.com/api/maker/iqc?text=${encodeURIComponent(text)}`;
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 30000);
+
+                const res = await fetch(url, {
+                    signal: controller.signal,
+                    mode: 'cors'
+                });
+                clearTimeout(timeout);
+
+                if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+                const ct = res.headers.get('content-type');
+                if (!ct || !ct.includes('image')) {
+                    throw new Error('API tidak mengembalikan gambar');
+                }
+
+                const blob = await res.blob();
+                if (blob.size === 0) throw new Error('Gambar kosong');
+
+                if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
+                currentImageUrl = URL.createObjectURL(blob);
+                resultImg.src = currentImageUrl;
+
+                await new Promise((resolve, reject) => {
+                    resultImg.onload = resolve;
+                    resultImg.onerror = () => reject(new Error('Gagal memuat gambar'));
+                });
+
+                loadingOverlay.classList.remove('active');
+                resultSection.classList.add('active');
+                showNotif();
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (err) {
+                console.error(err);
+                loadingOverlay.classList.remove('active');
+                if (err.name === 'AbortError') {
+                    showError('Waktu habis. Coba lagi.');
+                } else {
+                    showError(err.message || 'Gagal generate.');
+                }
+            }
+        });
+
+        // ===== DOWNLOAD =====
+        downloadBtn.addEventListener('click', function() {
+            if (!currentImageUrl) {
+                showError('Tidak ada gambar.');
+                return;
+            }
+            const link = document.createElement('a');
+            link.href = currentImageUrl;
+            link.download = `iqc-${Date.now()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // ===== NEW =====
+        newBtn.addEventListener('click', function() {
+            resultSection.classList.remove('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // ===== ENTER KEY =====
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !loadingOverlay.classList.contains('active')) {
+                generateBtn.click();
+            }
+        });
+
+        // ===== INIT =====
+        window.addEventListener('load', () => {
+            window.scrollTo(0, 0);
+        });
+    </script>
+
+</body>
+</html>
