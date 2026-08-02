@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Dashboard • WebTools</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-deep: #06060f;
+            --bg-card: rgba(17, 25, 40, 0.65);
+            --border-light: rgba(255, 255, 255, 0.06);
+            --primary: #8b5cf6;
+            --secondary: #06b6d4;
+            --accent: #f472b6;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --glass-blur: blur(16px);
+            --success: #4ade80;
+            --danger: #ef4444;
+            --warning: #fbbf24;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            font-weight: 600;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-top: 80px;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(6, 182, 212, 0.06) 0%, transparent 60%),
+                linear-gradient(180deg, #06060f 0%, #0f0a1e 50%, #06060f 100%);
+            background-attachment: fixed;
+        }
+
+        input,
+        textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+            font-weight: 500;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) rgba(255, 255, 255, 0.02);
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: #06060f;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, rgba(6, 182, 212, 0.06) 0%, transparent 60%),
+                linear-gradient(180deg, #06060f 0%, #0f0a1e 50%, #06060f 100%);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 6em;
+            height: 6em;
+        }
+
+        .loader-ring {
+            animation: ringA 2s linear infinite;
+        }
+
+        .loader-ring-a {
+            stroke: #9708F4;
+        }
+
+        .loader-ring-b {
+            animation-name: ringB;
+            stroke: #5E14E4;
+        }
+
+        .loader-ring-c {
+            animation-name: ringC;
+            stroke: #9708F4;
+        }
+
+        .loader-ring-d {
+            animation-name: ringD;
+            stroke: #5E14E4;
+        }
+
+        .loading-text {
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+
+        .loading-text .highlight {
+            color: var(--primary);
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .loading-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-percent {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            opacity: 0.3;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes ringA {
+            from, 4% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -330; }
+            12% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -335; }
+            32% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -595; }
+            40%, 54% { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -660; }
+            62% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -665; }
+            82% { stroke-dasharray: 60 600; stroke-width: 30; stroke-dashoffset: -925; }
+            90%, to { stroke-dasharray: 0 660; stroke-width: 20; stroke-dashoffset: -990; }
+        }
+
+        @keyframes ringB {
+            from, 12% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -110; }
+            20% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -115; }
+            40% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -195; }
+            48%, 62% { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -220; }
+            70% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -225; }
+            90% { stroke-dasharray: 20 200; stroke-width: 30; stroke-dashoffset: -305; }
+            98%, to { stroke-dasharray: 0 220; stroke-width: 20; stroke-dashoffset: -330; }
+        }
+
+        @keyframes ringC {
+            from { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+            8% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+            28% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+            36%, 58% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+            66% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+            86% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+            94%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+        }
+
+        @keyframes ringD {
+            from, 8% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: 0; }
+            16% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -5; }
+            36% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -175; }
+            44%, 50% { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -220; }
+            58% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -225; }
+            78% { stroke-dasharray: 40 400; stroke-width: 30; stroke-dashoffset: -395; }
+            86%, to { stroke-dasharray: 0 440; stroke-width: 20; stroke-dashoffset: -440; }
+        }
+
+        .pin-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(16px);
+            z-index: 999998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: pinFade 0.3s ease;
+        }
+        .pin-overlay.hide {
+            display: none;
+        }
+
+        @keyframes pinFade {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .pin-box {
+            background: rgba(12, 12, 28, 0.95);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            padding: 36px 32px 28px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .pin-box .icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+        .pin-box h2 {
+            font-family: var(--font-head);
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+        .pin-box p {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .pin-dots {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .pin-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .pin-dots span.filled {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .pin-error {
+            color: var(--danger);
+            font-size: 0.7rem;
+            margin-bottom: 12px;
+            min-height: 20px;
+            opacity: 0;
+            transition: 0.2s;
+            font-weight: 600;
+        }
+        .pin-error.show {
+            opacity: 1;
+        }
+
+        .pin-numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .pin-numpad button {
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            border: 1px solid transparent;
+        }
+        .pin-numpad button:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .pin-numpad button:active {
+            transform: scale(0.93);
+        }
+        .pin-numpad button.clear-btn,
+        .pin-numpad button.enter-btn {
+            color: var(--text-muted);
+        }
+
+        .main-wrapper {
+            display: none;
+        }
+        .main-wrapper.show {
+            display: block;
+        }
+
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .reveal-hidden.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        nav {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 1000px;
+            padding: 10px 20px;
+            background: rgba(10, 10, 20, 0.5);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-light);
+            border-radius: 100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand {
+            font-family: var(--font-head);
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .brand span {
+            color: var(--primary);
+        }
+        .brand i {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: 0.25s ease;
+        }
+        .back-btn:hover {
+            color: #fff;
+        }
+
+        .main-content {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 16px;
+            border: 1px solid var(--border-light);
+            padding: 20px 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.25s ease;
+        }
+
+        .panel:hover {
+            border-color: rgba(139, 92, 246, 0.15);
+        }
+
+        .panel-title {
+            font-family: var(--font-head);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+            opacity: 0.5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== STATS GRID ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 16px 14px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(139, 92, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .stat-number {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            font-family: var(--font-head);
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.4;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* ===== HISTORY LIST ===== */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.25s ease;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-item:hover {
+            border-color: rgba(139, 92, 246, 0.2);
+        }
+
+        .history-item .url {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            word-break: break-all;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .history-item .meta {
+            display: flex;
+            gap: 12px;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            flex-wrap: wrap;
+        }
+
+        .history-item .meta span {
+            opacity: 0.5;
+        }
+
+        .history-item .meta .time {
+            color: var(--primary-light);
+            opacity: 0.6;
+        }
+
+        .history-item .download-btn {
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: rgba(74, 222, 128, 0.08);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.06);
+            transition: all 0.2s;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .history-item .download-btn:hover {
+            background: rgba(74, 222, 128, 0.16);
+        }
+
+        .history-item .download-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            padding: 30px 0;
+            opacity: 0.4;
+            font-weight: 500;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.15);
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(220, 38, 38, 0.25);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-muted);
+            border: 1px solid var(--border-light);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #6d28d9);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.3);
+        }
+
+        /* ===== DELETE BUTTON UIVERSE ===== */
+        .delete-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-light);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.164);
+            cursor: pointer;
+            transition-duration: .3s;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .delete-button .svgIcon {
+            width: 18px;
+            transition-duration: .3s;
+        }
+
+        .delete-button .svgIcon path {
+            fill: var(--text-muted);
+            transition: fill 0.3s ease;
+        }
+
+        .delete-button:hover {
+            width: 140px;
+            border-radius: 50px;
+            transition-duration: .3s;
+            background-color: #ef4444;
+            align-items: center;
+            border-color: #ef4444;
+        }
+
+        .delete-button:hover .svgIcon {
+            width: 28px;
+            transition-duration: .3s;
+            transform: translateY(60%);
+        }
+
+        .delete-button:hover .svgIcon path {
+            fill: white;
+        }
+
+        .delete-button::before {
+            position: absolute;
+            top: -20px;
+            content: "Delete";
+            color: white;
+            transition-duration: .3s;
+            font-size: 2px;
+            opacity: 0;
+            font-family: var(--font-body);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .delete-button:hover::before {
+            font-size: 13px;
+            opacity: 1;
+            transform: translateY(30px);
+            transition-duration: .3s;
+        }
+
+        .delete-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .delete-wrapper .delete-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            opacity: 0.3;
+            font-weight: 500;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(12, 12, 28, 0.95);
+            border: 1px solid var(--border-light);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: var(--success);
+            z-index: 99999;
+            display: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            font-weight: 600;
+        }
+
+        .toast.show {
+            display: block;
+            animation: toastIn 0.3s ease;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 700px) {
+            body { padding-top: 70px; }
+            .main-content { padding: 0 12px 30px; gap: 12px; }
+            .panel { padding: 14px 16px; }
+            nav { width: 96%; padding: 8px 14px; top: 10px; }
+            .brand { font-size: 0.85rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-card .stat-number { font-size: 1.2rem; }
+            .history-item { flex-direction: column; align-items: flex-start; }
+            .history-item .meta { width: 100%; justify-content: flex-start; }
+            .pin-box { padding: 28px 20px 20px; }
+            .pin-numpad button { padding: 10px; font-size: 1rem; }
+            .loader { width: 4em; height: 4em; }
+            .loading-text { font-size: 0.7rem; }
+            .loading-progress { width: 150px; }
+            .delete-button { width: 40px; height: 40px; }
+            .delete-button .svgIcon { width: 14px; }
+            .delete-button:hover { width: 120px; }
+            .delete-button:hover .svgIcon { width: 22px; }
+            .delete-wrapper .delete-label { display: none; }
+        }
+
+        @media (max-width: 400px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .stat-card { padding: 12px 10px; }
+            .stat-card .stat-number { font-size: 1rem; }
+            .stat-card .stat-icon { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING SCREEN ===== -->
+    <div id="loadingScreen">
+        <svg viewBox="0 0 240 240" height="120" width="120" class="loader">
+            <circle stroke-linecap="round" stroke-dashoffset="-330" stroke-dasharray="0 660" stroke-width="20" stroke="#000" fill="none" r="105" cy="120" cx="120" class="loader-ring loader-ring-a"></circle>
+            <circle stroke-linecap="round" stroke-dashoffset="-110" stroke-dasharray="0 220" stroke-width="20" stroke="#000" fill="none" r="35" cy="120" cx="120" class="loader-ring loader-ring-b"></circle>
+            <circle stroke-linecap="round" stroke-dasharray="0 440" stroke-width="20" stroke="#000" fill="none" r="70" cy="120" cx="85" class="loader-ring loader-ring-c"></circle>
+            <circle stroke-linecap="round" stroke-dasharray="0 440" stroke-width="20" stroke="#000" fill="none" r="70" cy="120" cx="155" class="loader-ring loader-ring-d"></circle>
+        </svg>
+        <div class="loading-text">Memuat <span class="highlight">Dashboard</span></div>
+        <div class="loading-progress">
+            <div class="loading-progress-fill" id="loadingProgressFill"></div>
+        </div>
+        <div class="loading-percent" id="loadingPercent">0%</div>
+    </div>
+
+    <!-- ===== PIN OVERLAY ===== -->
+    <div class="pin-overlay" id="pinOverlay">
+        <div class="pin-box">
+            <div class="icon"><i class="fas fa-lock"></i></div>
+            <h2>Dashboard Access</h2>
+            <p>Masukkan PIN 4 digit</p>
+            <div class="pin-dots" id="pinDots">
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="pin-error" id="pinError">PIN salah. Coba lagi.</div>
+            <div class="pin-numpad">
+                <button data-num="1">1</button>
+                <button data-num="2">2</button>
+                <button data-num="3">3</button>
+                <button data-num="4">4</button>
+                <button data-num="5">5</button>
+                <button data-num="6">6</button>
+                <button data-num="7">7</button>
+                <button data-num="8">8</button>
+                <button data-num="9">9</button>
+                <button class="clear-btn" data-num="clear"><i class="fas fa-delete-left"></i></button>
+                <button data-num="0">0</button>
+                <button class="enter-btn" data-num="enter"><i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav>
+        <a href="index.html" class="brand">
+            <i class="fas fa-code"></i> Web<span>Zip</span> <span style="font-size:0.5rem;opacity:0.3;font-weight:400;">Dashboard</span>
+        </a>
+        <div class="nav-right">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Kembali</a>
+            <a href="scraper.html" class="back-btn"><i class="fas fa-scroll"></i> Scraper</a>
+        </div>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-wrapper" id="mainWrapper">
+
+        <div class="main-content">
+
+            <!-- ===== STATISTIK ===== -->
+            <div class="panel reveal-hidden">
+                <div class="panel-title"><i class="fas fa-chart-simple"></i> Statistik Scraping</div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-number" id="totalScrapes">0</div>
+                        <div class="stat-label">Total Scrape</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-number" id="totalFiles">0</div>
+                        <div class="stat-label">Total File</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-number" id="avgSize">0 KB</div>
+                        <div class="stat-label">Rata-rata</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-number" id="lastScrape">-</div>
+                        <div class="stat-label">Terakhir</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RIWAYAT ===== -->
+            <div class="panel reveal-hidden">
+                <div class="panel-title"><i class="fas fa-clock"></i> Riwayat Aktivitas</div>
+                <div id="historyList"></div>
+                <div class="history-actions">
+                    <div class="delete-wrapper">
+                        <button class="delete-button" id="clearHistoryBtn">
+                            <svg viewBox="0 0 448 512" class="svgIcon">
+                                <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+                            </svg>
+                        </button>
+                        <span class="delete-label">Hapus Semua</span>
+                    </div>
+                    <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-refresh"></i> Refresh</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js">
+    </script>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== LOADING SCREEN =====
+            const loadingScreen = document.getElementById('loadingScreen');
+            const progressFill = document.getElementById('loadingProgressFill');
+            const percentText = document.getElementById('loadingPercent');
+
+            let progress = 0;
+
+            function updateLoading() {
+                progress += Math.random() * 15 + 5;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = progress + '%';
+                percentText.textContent = Math.floor(progress) + '%';
+
+                if (progress < 100) {
+                    setTimeout(updateLoading, 200 + Math.random() * 300);
+                } else {
+                    setTimeout(() => {
+                        loadingScreen.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        initApp();
+                    }, 500);
+                }
+            }
+
+            setTimeout(updateLoading, 300);
+
+            // ===== APP =====
+            const PIN = '3333';
+
+            // ===== INDEXEDDB =====
+            const DB_NAME = 'WebZipDB';
+            const STORE_NAME = 'zips';
+
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, 1);
+                    request.onupgradeneeded = function(event) {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        }
+                    };
+                    request.onsuccess = function(event) {
+                        resolve(event.target.result);
+                    };
+                    request.onerror = function(event) {
+                        reject(event.target.error);
+                    };
+                });
+            }
+
+            function getZipFromDB(id) {
+                return new Promise((resolve, reject) => {
+                    openDB().then(db => {
+                        const transaction = db.transaction(STORE_NAME, 'readonly');
+                        const store = transaction.objectStore(STORE_NAME);
+                        const request = store.get(id);
+                        request.onsuccess = function() {
+                            resolve(request.result);
+                        };
+                        request.onerror = function() {
+                            reject(request.error);
+                        };
+                        transaction.oncomplete = function() {
+                            db.close();
+                        };
+                    }).catch(reject);
+                });
+            }
+
+            function initApp() {
+                // PIN LOGIC
+                const pinOverlay = document.getElementById('pinOverlay');
+                const pinDots = document.querySelectorAll('#pinDots span');
+                const pinError = document.getElementById('pinError');
+                const mainWrapper = document.getElementById('mainWrapper');
+                let pinValue = '';
+
+                function updatePinDots() {
+                    pinDots.forEach((dot, i) => {
+                        dot.classList.toggle('filled', i < pinValue.length);
+                    });
+                }
+
+                function checkPin() {
+                    if (pinValue === PIN) {
+                        pinOverlay.classList.add('hide');
+                        mainWrapper.classList.add('show');
+                        setTimeout(initScrollReveal, 300);
+                        loadData();
+                    } else {
+                        pinError.classList.add('show');
+                        pinValue = '';
+                        updatePinDots();
+                        setTimeout(() => pinError.classList.remove('show'), 2000);
+                    }
+                }
+
+                document.querySelectorAll('.pin-numpad button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const num = this.dataset.num;
+                        if (num === 'clear') {
+                            pinValue = pinValue.slice(0, -1);
+                            updatePinDots();
+                            pinError.classList.remove('show');
+                            return;
+                        }
+                        if (num === 'enter') {
+                            if (pinValue.length === 4) checkPin();
+                            return;
+                        }
+                        if (pinValue.length < 4 && /^[0-9]$/.test(num)) {
+                            pinValue += num;
+                            updatePinDots();
+                            pinError.classList.remove('show');
+                            if (pinValue.length === 4) {
+                                setTimeout(checkPin, 300);
+                            }
+                        }
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && pinValue.length === 4 && !pinOverlay.classList.contains('hide')) {
+                        checkPin();
+                    }
+                    if (e.key === 'Backspace' && !pinOverlay.classList.contains('hide')) {
+                        pinValue = pinValue.slice(0, -1);
+                        updatePinDots();
+                        pinError.classList.remove('show');
+                    }
+                });
+
+                // ============================================================
+                // LOAD DATA
+                // ============================================================
+
+                function loadData() {
+                    loadHistory();
+                }
+
+                // ============================================================
+                // HISTORY
+                // ============================================================
+
+                function loadHistory() {
+                    let history = [];
+                    try {
+                        const raw = localStorage.getItem('webzip_history');
+                        if (raw) {
+                            history = JSON.parse(raw);
+                        }
+                    } catch (e) { history = []; }
+
+                    const list = document.getElementById('historyList');
+                    const totalScrapes = document.getElementById('totalScrapes');
+                    const totalFiles = document.getElementById('totalFiles');
+                    const avgSize = document.getElementById('avgSize');
+                    const lastScrape = document.getElementById('lastScrape');
+
+                    // Update stats
+                    totalScrapes.textContent = history.length;
+
+                    let totalF = 0;
+                    let totalSize = 0;
+                    let sizeCount = 0;
+                    let lastTime = '-';
+
+                    if (history.length > 0) {
+                        // Ambil waktu terakhir
+                        const last = history[0];
+                        if (last.time) {
+                            const d = new Date(last.time);
+                            lastTime = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        } else if (last.timestamp) {
+                            const d = new Date(last.timestamp);
+                            lastTime = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        }
+
+                        history.forEach(h => {
+                            totalF += h.files || 0;
+                            if (h.size) {
+                                const sizeMatch = String(h.size).match(/([\d.]+)\s*(KB|MB)/);
+                                if (sizeMatch) {
+                                    let sizeNum = parseFloat(sizeMatch[1]);
+                                    if (sizeMatch[2] === 'MB') sizeNum *= 1024;
+                                    totalSize += sizeNum;
+                                    sizeCount++;
+                                }
+                            }
+                        });
+
+                        const avg = sizeCount > 0 ? Math.round(totalSize / sizeCount) : 0;
+                        avgSize.textContent = avg > 1024 ? (avg / 1024).toFixed(1) + ' MB' : (avg || 0) + ' KB';
+                    } else {
+                        avgSize.textContent = '0 KB';
+                    }
+
+                    totalFiles.textContent = totalF;
+                    lastScrape.textContent = lastTime;
+
+                    // Render history list
+                    if (!history || history.length === 0) {
+                        list.innerHTML = `
+                            <div class="history-empty">
+                                📭 Belum ada aktivitas scraping.
+                                <br><span style="font-size:0.6rem;opacity:0.5;">Coba scrape dulu di halaman utama</span>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    list.innerHTML = history.map((h, idx) => {
+                        const time = h.time ? new Date(h.time).toLocaleString('id-ID') : 
+                                    h.timestamp ? new Date(h.timestamp).toLocaleString('id-ID') : '-';
+                        const hasZip = h.zipId ? true : false;
+                        const sizeDisplay = h.size || '-';
+
+                        return `
+                            <div class="history-item">
+                                <span class="url">${escapeHtml(h.url)}</span>
+                                <div class="meta">
+                                    <span>📄 ${h.files || 0} file</span>
+                                    <span>📦 ${sizeDisplay}</span>
+                                    <span class="time">🕐 ${time}</span>
+                                </div>
+                                ${hasZip ? `<button class="download-btn" onclick="window.downloadZipFromDB('${h.zipId}', '${escapeHtml(h.fileName || 'webzip.zip')}')"><i class="fas fa-download"></i> ZIP</button>` : '<span style="font-size:0.55rem;opacity:0.3;">⚠️ ZIP tidak tersedia</span>'}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // ===== DOWNLOAD ZIP FROM INDEXEDDB =====
+                window.downloadZipFromDB = function(zipId, fileName) {
+                    if (!zipId) {
+                        showToast('⚠️ ID ZIP tidak ditemukan.');
+                        return;
+                    }
+
+                    showToast('⏳ Mengambil ZIP dari database...');
+
+                    getZipFromDB(zipId).then(result => {
+                        if (!result) {
+                            showToast('❌ ZIP tidak ditemukan di database.');
+                            return;
+                        }
+
+                        try {
+                            const blob = result.blob;
+                            const name = fileName || result.fileName || 'webzip.zip';
+                            saveAs(blob, name);
+                            showToast(' ZIP berhasil di-download!');
+                        } catch (e) {
+                            console.error('Download error:', e);
+                            showToast('❌ Gagal download ZIP: ' + e.message);
+                        }
+                    }).catch(err => {
+                        console.error('Error mengambil ZIP:', err);
+                        showToast('❌ Gagal mengambil ZIP dari database.');
+                    });
+                };
+
+                // ===== CLEAR HISTORY =====
+                function clearHistory() {
+                    if (!confirm('Hapus semua riwayat scraping? (ZIP di database akan dihapus juga)')) return;
+
+                    localStorage.removeItem('webzip_history');
+
+                    openDB().then(db => {
+                        const transaction = db.transaction('zips', 'readwrite');
+                        const store = transaction.objectStore('zips');
+                        const request = store.clear();
+                        request.onsuccess = function() {
+                            showToast('🗑️ Riwayat dan ZIP berhasil dihapus!');
+                            loadData();
+                        };
+                        request.onerror = function() {
+                            showToast('⚠️ History dihapus tapi ZIP gagal dihapus');
+                            loadData();
+                        };
+                        transaction.oncomplete = function() {
+                            db.close();
+                        };
+                    }).catch(() => {
+                        showToast('⚠️ History dihapus tapi ZIP gagal dihapus');
+                        loadData();
+                    });
+                }
+
+                // ============================================================
+                // TOAST
+                // ============================================================
+
+                function showToast(msg) {
+                    const toast = document.getElementById('toast');
+                    toast.textContent = msg;
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+
+                // ============================================================
+                // ESCAPE HTML
+                // ============================================================
+
+                function escapeHtml(str) {
+                    const div = document.createElement('div');
+                    div.textContent = str;
+                    return div.innerHTML;
+                }
+
+                // ============================================================
+                // SCROLL REVEAL
+                // ============================================================
+
+                function initScrollReveal() {
+                    const els = document.querySelectorAll('.reveal-hidden');
+                    els.forEach(el => el.classList.remove('revealed'));
+
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('revealed');
+                            } else {
+                                entry.target.classList.remove('revealed');
+                                void entry.target.offsetWidth;
+                            }
+                        });
+                    }, {
+                        threshold: 0.1,
+                        rootMargin: '0px 0px -30px 0px'
+                    });
+
+                    els.forEach(el => observer.observe(el));
+                    window._scrollObserver = observer;
+                }
+
+                // ============================================================
+                // EVENT LISTENERS
+                // ============================================================
+
+                document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+                document.getElementById('refreshBtn').addEventListener('click', function() {
+                    loadData();
+                    showToast('🔄 Data di-refresh!');
+                });
+
+                // Storage event listener untuk update real-time
+                window.addEventListener('storage', function(e) {
+                    if (e.key === 'webzip_history') {
+                        loadData();
+                    }
+                });
+
+                console.log('📊 Dashboard ready. PIN: 3333');
+                console.log('📈 Menampilkan statistik scraping real-time!');
+            }
+        })();
+    </script>
+
+</body>
+</html>
