@@ -1,0 +1,17 @@
+# 404 Error Page
+ErrorDocument 404 /404.html
+
+# 403 Error Page
+ErrorDocument 403 /404.html
+
+# 500 Error Page
+ErrorDocument 500 /404.html
+
+# Disable directory browsing
+Options -Indexes
+
+# Redirect all non-existing files to 404.html
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /404.html [L,R=404]
